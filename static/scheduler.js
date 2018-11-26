@@ -1,6 +1,11 @@
 function init() {
   scheduler.config.mark_now = true;
   scheduler.config.show_loading = true;
+  scheduler.config.details_on_create=true;
+  scheduler.config.details_on_dblclick=true;
+  scheduler.config.quick_info_detached = false;
+  scheduler.config.scroll_hour = moment().hours();
+  scheduler.config.start_on_monday = false;
 
   scheduler.locale.labels.section_color = "Background Color";
   scheduler.locale.labels.section_textColor = "Text Color";
@@ -16,9 +21,9 @@ function init() {
   // LOAD EVENTS
   getEvents();
 
-  // scheduler.parse([
-  // 	{"id": "11102", text:"HELLO? ID?", start_date:"11/26/2018 14:00", end_date:"11/26/2018 17:00", color:"#9575CD"},
-  // ],"json");
+  //scheduler.parse([
+  //	{"id": "11102", text:"TEST", start_date:"11/26/2018 10:00", end_date:"11/26/2018 17:00", color:"black"},
+  //],"json");
 
   scheduler.attachEvent("onEventAdded", function(id,ev){
     //any custom logic here
@@ -49,20 +54,19 @@ function init() {
 
 function deleteEvent(event) {
   fetch("/actions/event_delete.php", {
-      method: "DELETE", // *GET, POST, PUT, DELETE, etc.
-      cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-      credentials: "same-origin", // include, *same-origin, omit
+      method: "DELETE",
+      cache: "no-cache",
+      credentials: "same-origin",
       headers: {
-          //"Content-Type": "application/json; charset=utf-8",
           "Content-Type": "application/x-www-form-urlencoded",
       },
-      redirect: "follow", // manual, *follow, error
-      referrer: "no-referrer", // no-referrer, *client
-      body: "id=" + event.id // body data type must match "Content-Type" header
+      redirect: "follow", 
+      referrer: "no-referrer",
+      body: "id=" + event.id
   })
   .then(response => { response.text().then(text => console.log(text)) },
-  error => {console.log(error);}); // parses response to JSON
-  }
+  error => {console.log(error);});
+}
 
 function updateEvent(event) {
   var form = parameterize([
@@ -75,19 +79,18 @@ function updateEvent(event) {
   ]);
 
   fetch("/actions/event_update.php", {
-      method: "PUT", // *GET, POST, PUT, DELETE, etc.
-      cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-      credentials: "same-origin", // include, *same-origin, omit
+      method: "PUT",
+      cache: "no-cache",
+      credentials: "same-origin",
       headers: {
-          //"Content-Type": "application/json; charset=utf-8",
           "Content-Type": "application/x-www-form-urlencoded",
       },
-      redirect: "follow", // manual, *follow, error
-      referrer: "no-referrer", // no-referrer, *client
-      body: form // body data type must match "Content-Type" header
+      redirect: "follow",
+      referrer: "no-referrer",
+      body: form
   })
   .then(response => { response.text().then(text => console.log(text)) },
-  error => {console.log(error);}); // parses response to JSON
+  error => {console.log(error);});
 }
 
 function addEvent(event) {
@@ -103,21 +106,20 @@ function addEvent(event) {
   ]);
 
   return fetch("/actions/event_add.php", {
-      method: "POST", // *GET, POST, PUT, DELETE, etc.
-      cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-      credentials: "same-origin", // include, *same-origin, omit
+      method: "POST",
+      cache: "no-cache",
+      credentials: "same-origin",
       headers: {
-          //"Content-Type": "application/json; charset=utf-8",
           "Content-Type": "application/x-www-form-urlencoded",
       },
-      redirect: "follow", // manual, *follow, error
-      referrer: "no-referrer", // no-referrer, *client
-      body: form // body data type must match "Content-Type" header
+      redirect: "follow",
+      referrer: "no-referrer",
+      body: form
   });
 }
 
 function parameterize(kvpairs) {
-  str = "";
+  var str = "";
   for(var i=0; i<kvpairs.length; ++i) {
     kvp = kvpairs[i];
     str += kvp.key + "=" + kvp.value;
@@ -131,6 +133,7 @@ function getEvents() {
   .then(response => {
     response.json().then(
       data => {
+		// Parse events into scheduler
         scheduler.parse(data, "json");
       }
     )
@@ -138,4 +141,19 @@ function getEvents() {
   .then(error => {
     console.log(error);
   });
+}
+
+function show_minical(){
+	if (scheduler.isCalendarVisible())
+		scheduler.destroyCalendar();
+	else
+		scheduler.renderCalendar({
+			position:"dhx_minical_icon",
+			date:scheduler._date,
+			navigation:true,
+			handler:function(date,calendar){
+				scheduler.setCurrentView(date);
+				scheduler.destroyCalendar()
+			}
+		});
 }
